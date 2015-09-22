@@ -1,0 +1,868 @@
+#FormClass
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace MyDrawingProject
+{
+    public partial class Form1 : Form
+    {
+        int x = 0, y = 0;
+
+        Graphics formGraphics;
+        Pen myPen;
+        Game myGame;
+
+        public Form1()
+        {
+            InitializeComponent();
+            myGame = new Game();
+        }
+
+        protected override void OnMouseClick(MouseEventArgs e)
+        {
+            base.OnMouseClick(e);
+
+            if (myGame.MyisCross)
+                myGame.MyCellProperty = 1;
+            else
+                myGame.MyCellProperty = 2;
+
+            if (Human1radioButton.Checked && Human2radioButton.Checked || 
+                    myGame.MyisCross && Human1radioButton.Checked && Comp2radioButton.Checked ||
+                        !myGame.MyisCross && Comp1radioButton.Checked && Human2radioButton.Checked)//Human vs Human //Human vs Comp 1 //Comp vs Human 2
+            {
+                x = e.X;
+                y = e.Y;
+                myGame.MyMoveCountProperty++;
+            }
+
+            if (!myGame.MyisCross && Human1radioButton.Checked && Comp2radioButton.Checked ||
+                    myGame.MyisCross && Comp1radioButton.Checked && Human2radioButton.Checked)//Human vs Comp 2 //Comp vs Human 1
+                ComputerCoords();
+
+            if (Comp1radioButton.Checked && Comp2radioButton.Checked)
+            {
+                MessageBox.Show("Cannot play comp vs comp!");
+                return;
+            }
+
+            myGame.SetRowCol(x, y); //Setting row and col in matrix with the help of coords
+
+            if (myGame.GetArrayCell(myGame.MyRow, myGame.MyCol) != 0) //If the cell is not empty - show message
+            {
+                MessageBox.Show("Already entered this cell!");
+                myGame.MyMoveCountProperty--;
+                return;
+            }
+
+            myGame.SetArrayCell(myGame.MyRow, myGame.MyCol);
+
+            if (myGame.MyisCross)   //Check what to draw
+                DrawCross();
+            else
+                DrawToe();
+
+            if (myGame.IsWinner()) //Check matrix for win
+            {
+                if (!myGame.MyisCross)
+
+                    MessageBox.Show("Winner is Cross!");
+                else
+                    MessageBox.Show("Winner is Toe!");
+
+                Refresh();
+                myGame.NewGame();
+                return;
+            }
+
+            if (myGame.MyMoveCountProperty > 8) //Tie
+            {
+                MessageBox.Show("It's a tie!");
+                myGame.NewGame();
+                Refresh();
+                return;
+            }
+
+            if (Comp2radioButton.Checked && myGame.MyisCross == false) //if it's computer turn - call this method once again
+                OnMouseClick(e);
+            if (Comp1radioButton.Checked && myGame.MyisCross == true)
+                OnMouseClick(e);
+        }
+
+        private void ComputerCoords()
+        {
+            myGame.ComputerLogic();
+            if (myGame.MyRow == 0 && myGame.MyCol == 0)
+            {
+                x = 5;
+                y = 5;
+            }
+            if (myGame.MyRow == 0 && myGame.MyCol == 1)
+            {
+                x = 155;
+                y = 5;
+            }
+            if (myGame.MyRow == 0 && myGame.MyCol == 2)
+            {
+                x = 305;
+                y = 5;
+            }
+            if (myGame.MyRow == 1 && myGame.MyCol == 0)
+            {
+                x = 5;
+                y = 180;
+            }
+
+            if (myGame.MyRow == 1 && myGame.MyCol == 1)
+            {
+                x = 155;
+                y = 180;
+            }
+            if (myGame.MyRow == 1 && myGame.MyCol == 2)
+            {
+                x = 305;
+                y = 180;
+            }
+
+            if (myGame.MyRow == 2 && myGame.MyCol == 0)
+            {
+                x = 5;
+                y = 330;
+            }
+            if (myGame.MyRow == 2 && myGame.MyCol == 1)
+            {
+                x = 155;
+                y = 330;
+            }
+            if (myGame.MyRow == 2 && myGame.MyCol == 2)
+            {
+                x = 305;
+                y = 330;
+            }
+        }
+
+        private void CreateForm()
+        {
+            myPen = new Pen(Color.Black, 2);
+            formGraphics = this.CreateGraphics();
+
+            for (int x = 150; x <= 450; x += 150)
+                formGraphics.DrawLine(myPen, x, 25, x, 475);
+
+            for(int y = 175; y <= 475; y+=150)
+                formGraphics.DrawLine(myPen, 0, y, 450, y);
+
+            myPen.Dispose();
+            formGraphics.Dispose();
+        }
+
+
+        private void DrawToe()
+        {
+            myPen = new Pen(Color.Green, 4);
+            formGraphics = this.CreateGraphics();
+
+            if (x <= 150 && y <= 175)
+                formGraphics.DrawEllipse(myPen, 0, 25, 145, 145);
+
+            if (x > 150 && x <= 300 && y <= 175)
+                formGraphics.DrawEllipse(myPen, 150, 25, 145, 145);
+
+            if (x > 300 && x <= 450 && y <= 175)
+                formGraphics.DrawEllipse(myPen, 300, 25, 145, 145);
+
+            if (x <= 150 && y <= 300 && y >= 175)
+                formGraphics.DrawEllipse(myPen, 0, 175, 145, 145);
+
+            if (x <= 300 && x >= 150 && y <= 325 && y >= 175)
+                formGraphics.DrawEllipse(myPen, 150, 175, 145, 145);
+
+            if (x <= 450 && x >= 300 && y <= 325 && y >= 175)
+                formGraphics.DrawEllipse(myPen, 300, 175, 145, 145);
+
+            if (x <= 150 && y > 325 && y < 475)
+                formGraphics.DrawEllipse(myPen, 0, 325, 145, 145);
+
+            if (x <= 300 && x > 150 && y > 325 && y < 475)
+                formGraphics.DrawEllipse(myPen, 150, 325, 145, 145);
+
+            if (x <= 450 && x > 300 && y > 325 && y < 375)
+                formGraphics.DrawEllipse(myPen, 300, 325, 145, 145);
+
+            myPen.Dispose();
+            formGraphics.Dispose();
+            myGame.MyisCross = true;
+        }
+
+        private void DrawCross()
+        {
+            myPen = new Pen(Color.Red, 4);
+            formGraphics = this.CreateGraphics();
+
+            if (x <= 150 && y <= 175)
+            {
+                formGraphics.DrawLine(myPen, 5, 30, 145, 170);
+                formGraphics.DrawLine(myPen, 145, 30, 5, 170);
+            }
+
+            if (x > 150 && x <= 300 && y <= 175)
+            {
+                formGraphics.DrawLine(myPen, 155, 30, 295, 170);
+                formGraphics.DrawLine(myPen, 295, 30, 155, 170);
+            }
+
+            if (x > 300 && x <= 450 && y <= 175)
+            {
+                formGraphics.DrawLine(myPen, 305, 30, 445, 170);
+                formGraphics.DrawLine(myPen, 445, 30, 305, 170);
+            } //firs row
+
+            if (x <= 150 && y <= 325 && y >= 175)
+            {
+                formGraphics.DrawLine(myPen, 5, 180, 145, 320);
+                formGraphics.DrawLine(myPen, 145, 180, 5, 320);
+            }
+
+            if (x <= 300 && x >= 150 && y <= 325 && y >= 175)
+            {
+                formGraphics.DrawLine(myPen, 155, 180, 295, 320);
+                formGraphics.DrawLine(myPen, 295, 180, 155, 320);
+            }
+
+            if (x <= 450 && x >= 300 && y <= 325 && y >= 175)
+            {
+                formGraphics.DrawLine(myPen, 305, 180, 445, 320);
+                formGraphics.DrawLine(myPen, 445, 180, 305, 320);
+            } //second row
+
+            if (x <= 150 && y > 325 && y < 475)
+            {
+                formGraphics.DrawLine(myPen, 5, 330, 145, 470);
+                formGraphics.DrawLine(myPen, 145, 330, 5, 470);
+            }
+
+            if (x <= 300 && x > 150 && y > 325 && y < 475)
+            {
+                formGraphics.DrawLine(myPen, 155, 330, 295, 470);
+                formGraphics.DrawLine(myPen, 295, 330, 155, 470);
+            }
+
+            if (x <= 450 && x > 300 && y > 325 && y < 475)
+            {
+                formGraphics.DrawLine(myPen, 305, 330, 445, 470);
+                formGraphics.DrawLine(myPen, 445, 330, 305, 470);
+            }//third row
+
+            myPen.Dispose();
+            formGraphics.Dispose();
+            myGame.MyisCross = false;
+        }
+
+
+
+        private void newGameToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Invalidate();
+            myGame.NewGame();
+
+            CreateForm();
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            CreateForm();
+        }
+    }
+}
+
+#Game class
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MyDrawingProject
+{
+    class Game
+    {
+        bool isCross = true;
+        int[,] array1;
+
+        int currentCell;
+
+        public int MyCellProperty
+        {
+            get { return currentCell; }
+            set { currentCell = value; }
+        }
+        
+        int moveCount = 0;
+
+        public int MyMoveCountProperty
+        {
+            get { return moveCount; }
+            set { moveCount = value; }
+        }
+
+        private int Row;
+
+        public int MyRow
+        {
+            get { return Row; }
+            set { Row = value; }
+        }
+
+        private int Col;
+
+        public int MyCol
+        {
+            get { return Col; }
+            set { Col = value; }
+        }
+        
+        public bool MyisCross
+        {
+            get { return isCross; }
+            set { isCross = value; }
+        }
+
+        public void SetRowCol(int x, int y)
+        {
+            if (x <= 150 && y <= 175)
+                Row = Col = 0;
+
+            if (x > 150 && x <= 300 && y <= 175)
+            {
+                Row = 0;
+                Col = 1;
+            }
+
+            if (x > 300 && x <= 450 && y <= 175)
+            {
+                Row = 0;
+                Col = 2;
+            } //firs row
+
+            if (x <= 150 && y <= 325 && y >= 175)
+            {
+                Row = 1;
+                Col = 0;
+            }
+
+            if (x <= 300 && x >= 150 && y <= 325 && y >= 175)
+            {
+                Row = 1;
+                Col = 1;
+            }
+
+            if (x <= 450 && x >= 300 && y <= 325 && y >= 175)
+            {
+                Row = 1;
+                Col = 2;
+            } //second row
+
+            if (x <= 150 && y > 325 && y < 475)
+            {
+                Row = 2;
+                Col = 0;
+            }
+
+            if (x <= 300 && x > 150 && y > 325 && y < 475)
+            {
+                Row = 2;
+                Col = 1;
+            }
+
+            if (x <= 450 && x > 300 && y > 325 && y < 475)
+            {
+                Row = 2;
+                Col = 2;
+            }//third row
+        }
+
+        public void SetArrayCell(int i, int j)
+        {
+            if (array1[i, j] == 0)
+            {
+                Row = i;
+                Col = j;
+                if (isCross)
+                    array1[Row, Col] = 1;
+                else
+                    array1[Row, Col] = 2;
+            }
+            else
+                throw new ArithmeticException();
+        }
+
+        public int GetArrayCell(int i, int j)
+        {
+            return array1[i, j];
+        }
+
+        public void NewGame()
+        {
+            Row = Col = 0;
+
+            for (int i = 0; i < 3; ++i)
+                for (int j = 0; j < 3; ++j)
+                {
+                    array1[i, j] = 0;
+                }
+
+            isCross = true;
+            moveCount = 0;
+        }
+
+        public void ComputerLogic()
+        {
+            Random rnd = new Random();
+
+            int move = moveCount;
+
+            look_for_win();
+            if (move == moveCount)
+            {
+                look_for_corner();
+                if (move == moveCount && moveCount != 0 && moveCount != 1)
+                    look_for_empty_cell();
+
+                if (move == moveCount)
+                    look_for_start_cell();
+            }
+        }
+
+        private void look_for_win()
+        {
+            if (array1[0, 0] == currentCell && array1[0, 1] == 0 && array1[0, 2] == currentCell)
+            {
+                Row = 0;
+                Col = 1;
+                moveCount++;
+            }
+
+            else if (array1[0, 1] == currentCell && array1[0, 0] == 0 && array1[0, 2] == currentCell)
+            {
+                Row = 0;
+                Col = 0;
+                moveCount++;
+            }
+
+            else if (array1[0, 2] == 0 && array1[0, 1] == currentCell && array1[0, 2] == currentCell)
+            {
+                //Checked Row 1
+                Row = 0;
+                Col = 2;
+                moveCount++;
+            }
+
+            else if (array1[1, 0] == currentCell && array1[1, 1] == 0 && array1[1, 2] == currentCell)
+            {
+                Row = 1;
+                Col = 1;
+                moveCount++;
+            }
+
+            else if (array1[1, 1] == currentCell && array1[1, 0] == 0 && array1[1, 2] == currentCell)
+            {
+                Row = 1;
+                Col = 0;
+                moveCount++;
+            }
+
+            else if (array1[1, 2] == 0 && array1[1, 1] == currentCell && array1[1, 0] == currentCell)
+            {
+                // Checked Row 2
+                Row = 1;
+                Col = 2;
+                moveCount++;
+            }
+
+            else if (array1[2, 0] == currentCell && array1[2, 1] == 0 && array1[2, 2] == currentCell)
+            {
+                Row = 2;
+                Col = 1;
+                moveCount++;
+            }
+
+            else if (array1[2, 1] == currentCell && array1[2, 0] == 0 && array1[2, 2] == currentCell)
+            {
+                Row = 2;
+                Col = 0;
+                moveCount++;
+            }
+
+            else if (array1[2, 2] == 0 && array1[2, 1] == currentCell && array1[2, 0] == currentCell)
+            {
+                //Check row 3
+                Row = 2;
+                Col = 2;
+                moveCount++;
+            }
+
+            else if (array1[0, 0] == currentCell && array1[1, 0] == 0 && array1[2, 0] == currentCell)
+            {
+                Row = 1;
+                Col = 0;
+                moveCount++;
+            }
+
+            else if (array1[1, 0] == currentCell && array1[0, 0] == 0 && array1[2, 0] == currentCell)
+            {
+                Row = 0;
+                Col = 0;
+                moveCount++;
+            }
+
+            else if (array1[1, 0] == currentCell && array1[0, 0] == currentCell && array1[2, 0] == 0)
+            {
+                //Check col 1
+                Row = 2;
+                Col = 0;
+                moveCount++;
+            }
+            //Check col 2
+            else if (array1[0, 1] == currentCell && array1[1, 1] == 0 && array1[2, 1] == currentCell)
+            {
+                Row = 1;
+                Col = 1;
+                moveCount++;
+            }
+
+            else if (array1[1, 1] == currentCell && array1[0, 1] == 0 && array1[2, 1] == currentCell)
+            {
+                Row = 0;
+                Col = 1;
+                moveCount++;
+            }
+
+            else if (array1[1, 1] == currentCell && array1[0, 1] == currentCell && array1[2, 1] == 0) 
+            {
+                Row = 2;
+                Col = 1;
+                moveCount++;
+            }
+            //Check col 3
+            else if (array1[0, 2] == currentCell && array1[1, 2] == 0 && array1[2, 2] == currentCell)
+            {
+                Row = 1;
+                Col = 2;
+                moveCount++;
+            }
+
+            else if (array1[1, 2] == currentCell && array1[0, 2] == 0 && array1[2, 2] == currentCell)
+            {
+                Row = 0;
+                Col = 2;
+                moveCount++;
+            }
+
+            else if (array1[2, 2] == 0 && array1[0, 2] == currentCell && array1[1, 2] == currentCell)
+            {
+                Row = 2;
+                Col = 2;
+                moveCount++;
+            }
+            //Check diag 1
+            else if (array1[0, 0] == currentCell && array1[1, 1] == 0 && array1[2, 2] == currentCell)
+            {
+                Row = 1;
+                Col = 1;
+                moveCount++;
+            }
+
+            else if (array1[1, 1] == currentCell && array1[0, 0] == 0 && array1[2, 2] == currentCell)
+            {
+                Row = 0;
+                Col = 0;
+                moveCount++;
+            }
+
+            else if (array1[2, 2] == 0 && array1[0, 0] == currentCell && array1[1, 1] == currentCell)
+            {
+                
+                Row = 2;
+                Col = 2;
+                moveCount++;
+            }
+            //Check doag 2
+            else if (array1[0, 2] == currentCell && array1[1, 1] == 0 && array1[2, 0] == currentCell)
+            {
+                Row = 1;
+                Col = 1;
+                moveCount++;
+            }
+
+            else if (array1[1, 1] == currentCell && array1[0, 2] == 0 && array1[2, 0] == currentCell)
+            {
+                Row = 0;
+                Col = 2;
+                moveCount++;
+            }
+
+            else if (array1[2, 0] == 0 && array1[1, 1] == currentCell && array1[0, 2] == currentCell)
+            {
+                
+                Row = 2;
+                Col = 0;
+                moveCount++;
+            }
+        }
+
+        private bool look_for_opponent_win()
+        {
+            bool isWin = false;
+
+            if (currentCell == 1)
+                currentCell = 2;
+            else if (currentCell == 2)
+                currentCell = 1;
+
+            int move = moveCount;
+            look_for_win();
+
+            if (move < moveCount)
+            {
+                isWin = true;
+            }
+
+            if (currentCell == 1)
+                currentCell = 2;
+            else if (currentCell == 2)
+                currentCell = 1;
+
+            return isWin;
+        }
+
+        private void look_for_corner()
+        {
+            if (!look_for_opponent_win())
+            {
+                if (array1[0, 0] == currentCell)
+                {
+                    if (array1[0, 2] == 0)
+                    {
+                        Row = 0;
+                        Col = 2;
+                        moveCount++;
+                    }
+                    else if (array1[2, 0] == 0)
+                    {
+                        Row = 2;
+                        Col = 0;
+                        moveCount++;
+                    }
+                    else if (array1[2, 2] == 0)
+                    {
+                        Row = 2;
+                        Col = 2;
+                        moveCount++;
+                    }
+                }
+
+                else if (array1[0, 2] == currentCell)
+                {
+                    if (array1[0, 0] == 0)
+                    {
+                        Row = 0;
+                        Col = 0;
+                        moveCount++;
+                    }
+                    else if (array1[2, 2] == 0)
+                    {
+                        Row = 2;
+                        Col = 2;
+                        moveCount++;
+                    }
+                    else if (array1[2, 0] == 0)
+                    {
+                        Row = 2;
+                        Col = 0;
+                        moveCount++;
+                    }
+                }
+
+                else if (array1[2, 0] == currentCell)
+                {
+                    if (array1[0, 0] == 0)
+                    {
+                        Row = 0;
+                        Col = 0;
+                        moveCount++;
+                    }
+                    if (array1[0, 2] == 0)
+                    {
+                        Row = 0;
+                        Col = 2;
+                        moveCount++;
+                    }
+                    if (array1[2, 2] == 0)
+                    {
+                        Row = 2;
+                        Col = 2;
+                        moveCount++;
+                    }
+                }
+
+                else if (array1[2, 2] == currentCell)
+                {
+                    if (array1[0, 0] == 0)
+                    {
+                        Row = 0;
+                        Col = 0;
+                        moveCount++;
+                    }
+                    else if (array1[0, 2] == 0)
+                    {
+                        Row = 0;
+                        Col = 2;
+                        moveCount++;
+                    }
+                    else if (array1[2, 0] == 0)
+                    {
+                        Row = 2;
+                        Col = 0;
+                        moveCount++;
+                    }
+                }
+            }
+        }
+
+        private void look_for_empty_cell()
+        {
+            for(int i = 0; i < 3; ++i)
+                for (int j = 0; j < 3; ++j)
+                {
+                    if (array1[i, j] == 0)
+                    {
+                        Row = i;
+                        Col = j;
+                        moveCount++;
+                        return;
+                    }
+                }
+        }
+
+        private void look_for_start_cell()
+        {
+            Random rnd = new Random();
+            int exceptRow = 100;
+            int exceptCol = 100;
+
+            for (int i = 0; i < 3; ++i)
+                for (int j = 0; j < 3; ++j)
+                {
+                    if (array1[i, j] != 0)
+                    {
+                        exceptRow = i;
+                        exceptCol = j;
+                    }
+                }
+
+
+
+            if (array1[1, 1] == 1 && MyisCross == false)
+            {
+                bool all = false;
+                do
+                {
+                    Row = rnd.Next(0, 3);
+                    Col = rnd.Next(0, 3);
+
+                    bool first = ((Row == 0 && Col == 0) || (Row == 0 && Col == 2) || (Row == 2 && Col == 0)
+                    || (Row == 2 && Col == 2));
+
+                    bool second = (Row == exceptRow && Col == exceptCol);
+                    if (first && !second)
+                        all = true;
+
+
+                } while (!all);
+
+                moveCount++;
+            }
+            else if(MyisCross == false)
+            {
+                Row = Col = 1;
+                moveCount++;
+            }
+            else if (MyisCross == true)
+            {
+                do
+                {
+                    Row = rnd.Next(0, 3);
+                    Col = rnd.Next(0, 3);
+
+                } while (!((Row == 0 && Col == 0) || (Row == 0 && Col == 2) || (Row == 2 && Col == 0)
+                    || (Row == 2 && Col == 2)) || (Row == 1 && Col == 1));
+
+                moveCount++;
+            }
+        }
+
+        public Game()
+        {
+            array1 = new int[3, 3];
+
+            for(int i = 0; i < 3; ++i)
+                for (int j = 0; j < 3; ++j)
+                {
+                    array1[i, j] = 0;
+                }
+
+            Row = Col = 0;
+        }
+
+
+        public bool IsWinner()
+        {
+            bool isWin = false;
+            //Check rows
+            if (array1[0, 0] == array1[0, 1] && array1[0, 1] == array1[0, 2]
+                && array1[0, 0] != 0)
+                isWin = true;
+            if (array1[1, 0] == array1[1, 1] && array1[1, 1] == array1[1, 2]
+                && array1[1, 0] != 0)
+                isWin = true;
+            if (array1[2, 0] == array1[2, 1] && array1[2, 1] == array1[2, 2]
+                && array1[2, 0] != 0)
+                isWin = true;
+
+            //Check Columns
+            if (array1[0, 0] == array1[1, 0] && array1[1, 0] == array1[2, 0]
+                && array1[0, 0] != 0)
+                isWin = true;
+            if (array1[0, 1] == array1[1, 1] && array1[1, 1] == array1[2, 1]
+                && array1[0, 1] != 0)
+                isWin = true;
+            if (array1[0, 2] == array1[1, 2] && array1[1, 2] == array1[2, 2]
+                && array1[0, 2] != 0)
+                isWin = true;
+
+            //Check Diag
+            if (array1[0, 0] == array1[1, 1] && array1[1, 1] == array1[2, 2]
+                && array1[0, 0] != 0)
+                isWin = true;
+            if (array1[0, 2] == array1[1, 1] && array1[1, 1] == array1[2, 0]
+                && array1[0, 2] != 0)
+                isWin = true;
+
+            return isWin;
+        }
+    }
+}
